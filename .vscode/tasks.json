@@ -1,0 +1,56 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "1 Run Backend",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/k",
+                ".\\server\\venv\\Scripts\\activate && python .\\server\\app.py"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },        
+        {
+            "label": "2 Run Frontend",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/k",
+                "cd frontend && npm start"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "3 New Venv",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/k",
+                ".\\server\\venv\\Scripts\\activate"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        }
+    ]
+}
