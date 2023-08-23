@@ -56,7 +56,7 @@ function BlogPost(props) {
     console.log('\n POST::::', post)
     return (
         <div>
-            <h1>Titulo: {post.title}</h1>
+            <h1>{post.title}</h1>
             <h3>Descrição: {post.content}</h3>
             <p>Autor: {post.author}</p>
             <p>Data de postagem: {post.date_posted} </p>
