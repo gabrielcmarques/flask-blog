@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Flask, jsonify, request, abort, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -6,7 +7,9 @@ from datetime import datetime
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/blog/adicionar": {"origins": "http://localhost:3000"}})
+# CORS(app, resources={r"/blog/adicionar": {"origins": "http://localhost:3000"}})
+CORS(app, origins=["http://localhost:3000"])
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -60,7 +63,7 @@ def deletarUsuario():
 # ======== Blog Api =================================
 
 
-@app.route('/blog/<int:post_id>')
+@app.route('/blog/<int:post_id>', methods=['GET'])
 def getPostByID(post_id):
     # post = BlogPost.query.filter_by(id=post_id).one()
     post = BlogPost.query.get(post_id)
@@ -79,6 +82,28 @@ def getPostByID(post_id):
     return jsonify(post_data)
 
 
+@app.route('/blog', methods=['GET'])
+def getPosts():
+    posts = BlogPost.query.all()
+    post_list = []
+
+    for post in posts:
+        post_data = {
+            'id': post.id,
+            'title': post.title,
+            'subtitle': post.subtitle,
+            'author': post.author,
+            'content': post.content,
+            'date_posted': post.date_posted.strftime('%Y-%m-%d %H:%M:%S')
+        }
+        post_list.append(post_data)
+
+    # formatted_json = json.dumps(post_list, indent=4)
+    # print("\n POSTS", formatted_json)
+
+    return jsonify(posts=post_list)
+
+
 @app.route('/blog/adicionar', methods=['POST'])
 def adicionarPost():
     data = request.get_json()
@@ -87,11 +112,6 @@ def adicionarPost():
     subtitle = data.get('subtitle')
     author = data.get('author')
     content = data.get('content')
-
-    # title = request.form['title']
-    # subtitle = request.form['subtitle']
-    # author = request.form['author']
-    # content = request.form['content']
 
     new_post = BlogPost(title=title, subtitle=subtitle,
                         author=author, content=content)
@@ -105,24 +125,49 @@ def adicionarPost():
     return jsonify(response_data), 201
 
 
-@app.route('/blog/editar', methods=['POST'])
-def editarPost():
-    return 'Hello, addpost!!!'
-    # title = request.form['title']
-    # subtitle = request.form['subtitle']
-    # author = request.form['author']
-    # content = request.form['content']
+@app.route('/blog/editar/<int:post_id>', methods=['PUT'])
+def editarPost(post_id):
+    data = request.get_json()
+    title = data.get('title')
+    subtitle = data.get('subtitle')
+    author = data.get('author')
+    content = data.get('content')
+
+    post = BlogPost.query.get(post_id)
+    if post is None:
+        abort(404)
+
+    post.title = title
+    post.subtitle = subtitle
+    post.author = author
+    post.content = content
+
+    db.session.commit()
+
+    response_data = {
+        'message': f"Post with ID {post_id} updated successfully."
+    }
+
+    return jsonify(response_data), 200
+
 
 # @app.route('/post/<int:post_id>')
 
 
-@app.route('/blog/deletar', methods=['POST'])
-def deletarPost():
-    return 'Hello, addpost!!!'
-    # title = request.form['title']
-    # subtitle = request.form['subtitle']
-    # author = request.form['author']
-    # content = request.form['content']
+@app.route('/blog/deletar/<int:post_id>', methods=['DELETE'])
+def deletarPost(post_id):
+    post = BlogPost.query.get(post_id)
+    
+    if not post:
+        return jsonify({'message': f"Post with ID {post_id} not found"}), 404
+    
+    db.session.delete(post)
+    db.session.commit()
+    
+    response_data = {
+        'message': f"Post with ID {post_id} deleted successfully."}
+
+    return jsonify(response_data)
 
 
 if __name__ == '__main__':
